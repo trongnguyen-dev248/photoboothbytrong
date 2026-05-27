@@ -46,7 +46,11 @@ const localImages = ref([]);
 onMounted(async () => {
   try {
     stream.value = await navigator.mediaDevices.getUserMedia({
-      video: { width: 640, height: 480 }
+      video: { 
+        width: { ideal: 640 }, 
+        height: { ideal: 480 },
+        facingMode: "user"
+      }
     });
     if (videoRef.value) {
       videoRef.value.srcObject = stream.value;
@@ -94,39 +98,56 @@ const captureShot = () => {
     const ctx = canvasRef.value.getContext('2d');
     const cw = 640;
     const ch = 480;
-    ctx.clearRect(0, 0, cw, ch);
     
+    const vWidth = videoRef.value.videoWidth;
+    const vHeight = videoRef.value.videoHeight;
+    
+    ctx.clearRect(0, 0, cw, ch);
     ctx.save();
+    
     ctx.translate(cw, 0);
     ctx.scale(-1, 1);
     
     ctx.filter = 'brightness(1.15) contrast(0.9) saturate(1.35) blur(0.8px)';
     
-    // Kỹ thuật Slim Face phần cứng: bóp nhẹ chiều ngang khoảng 6%
-    const slimFactor = 0.94; 
-    const drawW = cw * slimFactor;
-    const drawX = (cw - drawW) / 2;
+    let drawW, drawH, drawX, drawY;
+    const videoRatio = vWidth / vHeight;
+    const canvasRatio = cw / ch;
     
-    ctx.drawImage(videoRef.value, drawX, 0, drawW, ch);
+    if (videoRatio > canvasRatio) {
+      drawH = ch;
+      drawW = ch * videoRatio;
+      drawX = (cw - drawW) / 2;
+      drawY = 0;
+    } else {
+      drawW = cw;
+      drawH = cw / videoRatio;
+      drawX = 0;
+      drawY = (ch - drawH) / 2;
+    }
     
+    const slimFactor = 0.95;
+    const slimW = drawW * slimFactor;
+    const slimX = drawX + (drawW - slimW) / 2;
+    
+    ctx.drawImage(videoRef.value, slimX, drawY, slimW, drawH);
     ctx.restore();
-    
     ctx.filter = 'none';
     
-    const url = canvasRef.value.toDataURL('image/jpeg', 0.9);
+    const url = canvasRef.value.toDataURL('image/jpeg', 0.95);
     localImages.value.push(url);
-  }
-};
-
-const stopCamera = () => {
-  if (stream.value) {
-    stream.value.getTracks().forEach(track => track.stop());
   }
 };
 
 const handleBack = () => {
   stopCamera();
   emit('back');
+};
+
+const stopCamera = () => {
+  if (stream.value) {
+    stream.value.getTracks().forEach(track => track.stop());
+  }
 };
 
 onUnmounted(() => {
@@ -208,6 +229,7 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 12px;
+  position: relative;
 }
 
 .btn-capture {
