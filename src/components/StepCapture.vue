@@ -2,9 +2,9 @@
   <div class="capture-container">
     <h2 class="title">Phòng Chụp Ảnh</h2>
     
-    <div class="viewport-wrapper">
+    <div class="viewport-wrapper" :class="isPortrait ? 'portrait-mode' : 'landscape-mode'">
       <video ref="videoRef" autoplay playsinline class="camera-stream" :class="{ 'flash-effect': isFlashing }"></video>
-      <canvas ref="canvasRef" width="640" height="480" style="display: none;"></canvas>
+      <canvas ref="canvasRef" :width="isPortrait ? 480 : 640" :height="isPortrait ? 640 : 480" style="display: none;"></canvas>
       
       <div v-if="countdown > 0" class="countdown-display">
         <span class="count-num">{{ countdown }}</span>
@@ -42,8 +42,16 @@ const countdown = ref(0);
 const isCapturing = ref(false);
 const isFlashing = ref(false);
 const localImages = ref([]);
+const isPortrait = ref(false);
+
+const checkOrientation = () => {
+  isPortrait.value = window.innerHeight > window.innerWidth && window.innerWidth < 768;
+};
 
 onMounted(async () => {
+  checkOrientation();
+  window.addEventListener('resize', checkOrientation);
+  
   try {
     stream.value = await navigator.mediaDevices.getUserMedia({
       video: { 
@@ -96,8 +104,8 @@ const triggerFlash = () => {
 const captureShot = () => {
   if (videoRef.value && canvasRef.value) {
     const ctx = canvasRef.value.getContext('2d');
-    const cw = 640;
-    const ch = 480;
+    const cw = canvasRef.value.width;
+    const ch = canvasRef.value.height;
     
     const vWidth = videoRef.value.videoWidth;
     const vHeight = videoRef.value.videoHeight;
@@ -151,6 +159,7 @@ const stopCamera = () => {
 };
 
 onUnmounted(() => {
+  window.removeEventListener('resize', checkOrientation);
   stopCamera();
 });
 </script>
@@ -170,12 +179,23 @@ onUnmounted(() => {
 .viewport-wrapper {
   position: relative;
   width: 100%;
-  aspect-ratio: 4/3;
   background: #2b2d42;
   border-radius: 24px;
   overflow: hidden;
   border: 6px solid #ffccd5;
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+  margin: 0 auto;
+  transition: all 0.3s ease;
+}
+
+.landscape-mode {
+  aspect-ratio: 4/3;
+  max-width: 100%;
+}
+
+.portrait-mode {
+  aspect-ratio: 3/4;
+  max-width: 340px;
 }
 
 .camera-stream {
