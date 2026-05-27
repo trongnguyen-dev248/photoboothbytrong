@@ -4,6 +4,11 @@
     <div class="graphic-element">📸</div>
     <button class="btn-start" @click="$emit('next')">Bắt đầu ngay ✨</button>
 
+    <div class="device-notice">
+      <span class="notice-icon">💻</span>
+      <p class="notice-text">Mẹo nhỏ: Hãy sử dụng laptop hoặc máy tính để có trải nghiệm chụp hình "cháy" nhất nhé!</p>
+    </div>
+
     <div class="feedback-wrapper">
       <div v-if="!showContact" class="feedback-link" @click="showContact = true">
         Góp ý ý tưởng? Liên hệ ngay ✨
@@ -29,7 +34,7 @@ const showContact = ref(false);
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 30px;
+  gap: 28px;
   width: 100%;
 }
 
@@ -80,8 +85,33 @@ const showContact = ref(false);
   transform: translateY(-1px) scale(0.98);
 }
 
+.device-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #fff5f5;
+  border: 2px dashed #ffb3c1;
+  padding: 10px 20px;
+  border-radius: 16px;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 4px 10px rgba(255, 179, 193, 0.15);
+}
+
+.notice-icon {
+  font-size: 1.4rem;
+  animation: wiggle 2s infinite;
+}
+
+.notice-text {
+  font-size: 0.88rem;
+  color: #ff4d6d;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: left;
+}
+
 .feedback-wrapper {
-  margin-top: 10px;
   min-height: 38px;
   display: flex;
   align-items: center;
@@ -134,6 +164,12 @@ const showContact = ref(false);
 @keyframes pulse {
   0% { transform: scale(1) rotate(-3deg); }
   100% { transform: scale(1.06) rotate(3deg); }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-8deg); }
+  75% { transform: rotate(8deg); }
 }
 
 @keyframes fadeIn {
