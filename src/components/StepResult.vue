@@ -9,7 +9,7 @@
         :class="[layoutType, { 'is-portrait-strip': isPortraitImages }]" 
         :style="frame.type === 'color' ? { backgroundColor: frame.value } : { backgroundImage: `url(${frame.value})` }"
       >
-        <div v-if="frame.type === 'color' && !isPortraitImages" class="strip-header">PHOTOBOOTH BY TRỌNG</div>
+        <div v-if="frame.type === 'color'" class="strip-header">PHOTOBOOTH BY TRỌNG</div>
         
         <div class="strip-grid">
           <div v-for="(img, idx) in images" :key="idx" class="strip-item">
@@ -17,8 +17,8 @@
           </div>
         </div>
         
-        <div v-if="frame.type === 'color' && !isPortraitImages" class="strip-footer">♥ {{ formattedDate }} ♥</div>
-        <div v-if="isPortraitImages" class="strip-footer-tiny-portrait">{{ formattedDate }}</div>
+        <div v-if="frame.type === 'color'" class="strip-footer">♥ {{ formattedDate }} ♥</div>
+        <div v-else class="strip-footer-tiny-portrait">{{ formattedDate }}</div>
       </div>
     </div>
 
@@ -108,6 +108,7 @@ const exportStrip = async () => {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
 }
 
 .title {
@@ -119,14 +120,16 @@ const exportStrip = async () => {
 .strip-container {
   display: flex;
   justify-content: center;
+  align-items: center;
   width: 100%;
   margin-bottom: 24px;
+  padding: 0 10px;
 }
 
 .photo-strip {
-  padding: 55px 18px 40px 18px;
+  padding: 60px 24px 45px 24px;
   box-shadow: 0 15px 35px rgba(89, 13, 34, 0.15);
-  border-radius: 8px;
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -135,20 +138,21 @@ const exportStrip = async () => {
   background-position: center;
   box-sizing: border-box;
   position: relative;
+  width: 100%;
 }
 
 .strip-header {
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 800;
   color: #fff;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6), 0 0 10px rgba(0, 0, 0, 0.4);
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   letter-spacing: 2px;
 }
 
 .strip-grid {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
 }
 
@@ -168,39 +172,25 @@ const exportStrip = async () => {
 }
 
 .strip-footer {
-  margin-top: 16px;
-  font-size: 0.8rem;
+  margin-top: 20px;
+  font-size: 0.85rem;
   font-weight: 700;
   color: #fff;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6), 0 0 10px rgba(0, 0, 0, 0.4);
 }
 
-.is-portrait-strip {
-  width: 210px !important;
-  padding: 40px 14px 35px 14px !important;
-}
-
-.is-portrait-strip .strip-item {
-  aspect-ratio: 3/4 !important;
-  border: 3px solid #fff !important;
-}
-
-.is-portrait-strip .strip-grid {
-  gap: 8px !important;
-}
-
 .strip-footer-tiny-portrait {
   position: absolute;
   bottom: 12px;
-  right: 14px;
-  font-size: 0.65rem;
+  right: 16px;
+  font-size: 0.7rem;
   font-weight: 600;
   color: #fff;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8), 0 0 4px rgba(0, 0, 0, 0.5);
 }
 
 .vertical {
-  width: 270px;
+  max-width: 290px;
 }
 .vertical .strip-grid {
   flex-direction: column;
@@ -211,8 +201,8 @@ const exportStrip = async () => {
 }
 
 .grid2x2 {
-  width: 360px;
-  padding: 50px 20px 35px 20px;
+  max-width: 390px;
+  padding: 55px 24px 40px 24px;
 }
 .grid2x2 .strip-grid {
   display: grid;
@@ -224,7 +214,7 @@ const exportStrip = async () => {
 }
 
 .wide3 {
-  width: 370px;
+  max-width: 410px;
 }
 .wide3 .strip-grid {
   flex-direction: column;
@@ -234,32 +224,44 @@ const exportStrip = async () => {
   aspect-ratio: 16/9;
 }
 
+.is-portrait-strip.vertical .strip-item {
+  aspect-ratio: 3/4;
+}
+
+.is-portrait-strip.grid2x2 .strip-item {
+  aspect-ratio: 3/4;
+}
+
+.is-portrait-strip.wide3 .strip-item {
+  aspect-ratio: 4/5;
+}
+
 .action-panel {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
-  margin-top: 10px;
+  margin-top: 15px;
 }
 
 .btn-download {
   font-family: inherit;
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 700;
   background: linear-gradient(135deg, #ff758f, #ff4d6d);
   color: #fff;
   border: none;
-  padding: 14px 44px;
+  padding: 14px 50px;
   border-radius: 50px;
   cursor: pointer;
-  box-shadow: 0 6px 18px rgba(255, 77, 109, 0.3);
+  box-shadow: 0 6px 18px rgba(255, 77, 109, 0.35);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .btn-download:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 22px rgba(255, 77, 109, 0.4);
+  box-shadow: 0 10px 22px rgba(255, 77, 109, 0.45);
 }
 
 .btn-reset {
@@ -267,7 +269,7 @@ const exportStrip = async () => {
   background: none;
   border: 2px solid #ff758f;
   color: #ff758f;
-  padding: 10px 26px;
+  padding: 10px 28px;
   border-radius: 50px;
   cursor: pointer;
   font-weight: 600;
@@ -280,13 +282,13 @@ const exportStrip = async () => {
 }
 
 @media (max-width: 480px) {
-  .vertical { width: 210px; }
-  .grid2x2 { width: 270px; padding: 40px 16px 30px 16px; }
-  .wide3 { width: 270px; }
-  .is-portrait-strip { width: 175px !important; padding: 35px 12px 30px 12px !important; }
-  .strip-grid { gap: 8px; }
-  .strip-item { border: 2px solid #fff; }
-  .strip-footer-tiny-portrait { bottom: 8px; right: 10px; font-size: 0.58rem; }
-  .btn-download { padding: 12px 36px; font-size: 1.1rem; }
+  .vertical { max-width: 240px; }
+  .grid2x2 { max-width: 310px; padding: 45px 18px 35px 18px; }
+  .wide3 { max-width: 310px; }
+  .photo-strip { padding: 45px 16px 35px 16px; }
+  .strip-grid { gap: 10px; }
+  .strip-item { border: 3px solid #fff; }
+  .strip-footer-tiny-portrait { bottom: 10px; right: 12px; font-size: 0.6rem; }
+  .btn-download { padding: 12px 40px; font-size: 1.15rem; }
 }
 </style>
