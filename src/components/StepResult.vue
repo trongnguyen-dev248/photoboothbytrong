@@ -101,6 +101,7 @@ const exportStrip = async () => {
     const canvas = await html2canvas(stripRef.value, {
       useCORS: true,
       scale: 4, 
+      devicePixelRatio: 4,
       backgroundColor: null,
       logging: false,
       imageTimeout: 0,
@@ -190,6 +191,8 @@ const exportStrip = async () => {
   box-sizing: border-box;
   position: relative;
   width: 100%;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 
 .strip-header {
@@ -220,6 +223,8 @@ const exportStrip = async () => {
   height: 100%;
   object-fit: cover;
   display: block;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 
 .strip-footer {
