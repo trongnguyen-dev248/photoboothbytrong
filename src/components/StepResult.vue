@@ -6,10 +6,10 @@
       <div 
         ref="stripRef" 
         class="photo-strip" 
-        :class="layoutType" 
+        :class="[layoutType, { 'is-portrait-strip': isPortraitImages, 'is-image-theme': frame.type === 'image' }]" 
         :style="frame.type === 'color' ? { backgroundColor: frame.value } : { backgroundImage: `url(${frame.value})` }"
       >
-        <div v-if="frame.type === 'color'" class="strip-header">PHOTOBOOTH BY TRỌNG</div>
+        <div v-if="frame.type === 'color' && !isPortraitImages" class="strip-header">PHOTOBOOTH BY TRỌNG</div>
         
         <div class="strip-grid">
           <div v-for="(img, idx) in images" :key="idx" class="strip-item">
@@ -17,8 +17,8 @@
           </div>
         </div>
         
-        <div v-if="frame.type === 'color'" class="strip-footer">♥ {{ formattedDate }} ♥</div>
-        <div v-else class="strip-footer-tiny">{{ formattedDate }}</div>
+        <div v-if="frame.type === 'color' && !isPortraitImages" class="strip-footer">♥ {{ formattedDate }} ♥</div>
+        <div v-if="isPortraitImages" class="strip-footer-tiny-portrait">{{ formattedDate }}</div>
       </div>
     </div>
 
@@ -30,7 +30,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import html2canvas from 'html2canvas';
 
 const props = defineProps({
@@ -51,6 +51,7 @@ const props = defineProps({
 defineEmits(['reset']);
 
 const stripRef = ref(null);
+const isPortraitImages = ref(false);
 
 const formattedDate = computed(() => {
   const now = new Date();
@@ -60,14 +61,39 @@ const formattedDate = computed(() => {
   return `${dd}.${mm}.${yyyy}`;
 });
 
+const detectOrientation = () => {
+  if (props.images.length > 0) {
+    const img = new Image();
+    img.src = props.images[0];
+    img.onload = () => {
+      // Nếu chiều cao > chiều rộng -> Ảnh chụp dọc
+      isPortraitImages.value = img.height > img.width;
+    };
+  }
+};
+
+onMounted(() => {
+  detectOrientation();
+});
+
 const exportStrip = async () => {
   if (!stripRef.value) return;
+  
   try {
+    // Tính toán kích thước thật của element để export chính xác, không bị cắt
+    const currentWidth = stripRef.value.offsetWidth;
+    const currentHeight = stripRef.value.offsetHeight;
+
     const canvas = await html2canvas(stripRef.value, {
       useCORS: true,
-      scale: 3,
-      backgroundColor: null
+      scale: 3, // Tăng chất lượng ảnh export
+      backgroundColor: null,
+      width: currentWidth,
+      height: currentHeight,
+      windowWidth: currentWidth,
+      windowHeight: currentHeight
     });
+    
     const link = document.createElement('a');
     link.download = `photobooth-by-trong-${Date.now()}.png`;
     link.href = canvas.toDataURL('image/png');
@@ -94,8 +120,10 @@ const exportStrip = async () => {
   display: flex;
   justify-content: center;
   margin-bottom: 28px;
+  overflow: visible; /* Đảm bảo shadow không bị cắt */
 }
 
+/* Base style cho dải ảnh */
 .photo-strip {
   padding: 60px 20px 45px 20px;
   box-shadow: 0 15px 35px rgba(89, 13, 34, 0.15);
@@ -108,6 +136,7 @@ const exportStrip = async () => {
   background-position: center;
   box-sizing: border-box;
   position: relative;
+  transition: all 0.3s ease; /* Animation mượt mà */
 }
 
 .strip-header {
@@ -148,7 +177,18 @@ const exportStrip = async () => {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6), 0 0 10px rgba(0, 0, 0, 0.4);
 }
 
-.strip-footer-tiny {
+/* --- Responsive Layout cho ảnh dọc (Điện thoại) --- */
+.is-portrait-strip {
+  /* Điều chỉnh padding cho khung đứng */
+  padding: 20px 20px 50px 20px; 
+}
+
+.is-portrait-strip .strip-item {
+  /* Tỷ lệ ô ảnh chụp dọc thon hơn */
+  aspect-ratio: 3/4 !important; 
+}
+
+.strip-footer-tiny-portrait {
   position: absolute;
   bottom: 10px;
   right: 14px;
@@ -158,6 +198,7 @@ const exportStrip = async () => {
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8), 0 0 4px rgba(0, 0, 0, 0.5);
 }
 
+/* --- Định nghĩa kích thước dải ảnh gốc --- */
 .vertical {
   width: 280px;
 }
@@ -166,7 +207,7 @@ const exportStrip = async () => {
 }
 .vertical .strip-item {
   width: 100%;
-  aspect-ratio: 4/3;
+  aspect-ratio: 4/3; /* Mặc định ngang */
 }
 
 .grid2x2 {
@@ -179,7 +220,7 @@ const exportStrip = async () => {
 }
 .grid2x2 .strip-item {
   width: 100%;
-  aspect-ratio: 4/3;
+  aspect-ratio: 4/3; /* Mặc định ngang */
 }
 
 .wide3 {
@@ -190,57 +231,22 @@ const exportStrip = async () => {
 }
 .wide3 .strip-item {
   width: 100%;
-  aspect-ratio: 16/9;
+  aspect-ratio: 16/9; /* Mặc định ngang */
 }
 
-.action-panel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-.btn-download {
-  font-family: inherit;
-  font-size: 1.2rem;
-  font-weight: 600;
-  background: linear-gradient(135deg, #ff758f, #ff4d6d);
-  color: #fff;
-  border: none;
-  padding: 14px 40px;
-  border-radius: 50px;
-  cursor: pointer;
-  box-shadow: 0 6px 15px rgba(255, 77, 109, 0.25);
-  transition: all 0.2s;
-}
-
-.btn-download:hover {
-  transform: translateY(-2px);
-}
-
-.btn-reset {
-  font-family: inherit;
-  background: none;
-  border: 2px solid #ff758f;
-  color: #ff758f;
-  padding: 10px 26px;
-  border-radius: 50px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.2s;
-}
-
-.btn-reset:hover {
-  background: #ff758f;
-  color: #fff;
-}
-
+/* --- Thêm Responsive Style cho Mobile --- */
 @media (max-width: 480px) {
-  .vertical { width: 220px; padding: 45px 14px 35px 14px; }
-  .grid2x2 { width: 290px; padding: 40px 16px 30px 16px; }
-  .wide3 { width: 290px; padding: 45px 16px 35px 16px; }
+  .vertical { width: 220px; }
+  .grid2x2 { width: 290px; }
+  .wide3 { width: 290px; }
+  
+  /* Điều chỉnh padding khi dọc trên mobile */
+  .vertical.is-portrait-strip { padding: 15px 15px 40px 15px; }
+  
   .strip-grid { gap: 10px; }
   .strip-item { border: 3px solid #fff; }
-  .strip-footer-tiny { bottom: 8px; right: 10px; font-size: 0.6rem; }
+  
+  /* Vị trí ngày tháng cho ảnh dọc mobile */
+  .strip-footer-tiny-portrait { bottom: 8px; right: 10px; font-size: 0.6rem; }
 }
 </style>
