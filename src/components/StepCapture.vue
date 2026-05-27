@@ -4,7 +4,7 @@
     
     <div class="viewport-wrapper" :class="isPortrait ? 'portrait-mode' : 'landscape-mode'">
       <video ref="videoRef" autoplay playsinline class="camera-stream" :class="{ 'flash-effect': isFlashing }"></video>
-      <canvas ref="canvasRef" :width="isPortrait ? 480 : 640" :height="isPortrait ? 640 : 480" style="display: none;"></canvas>
+      <canvas ref="canvasRef" :width="isPortrait ? 960 : 1280" :height="isPortrait ? 1280 : 960" style="display: none;"></canvas>
       
       <div v-if="countdown > 0" class="countdown-display">
         <span class="count-num">{{ countdown }}</span>
@@ -55,8 +55,8 @@ onMounted(async () => {
   try {
     stream.value = await navigator.mediaDevices.getUserMedia({
       video: { 
-        width: { ideal: 640 }, 
-        height: { ideal: 480 },
+        width: { ideal: 1280 }, 
+        height: { ideal: 960 },
         facingMode: "user"
       }
     });
@@ -116,7 +116,7 @@ const captureShot = () => {
     ctx.translate(cw, 0);
     ctx.scale(-1, 1);
     
-    ctx.filter = 'brightness(1.15) contrast(0.9) saturate(1.35) blur(0.8px)';
+    ctx.filter = 'brightness(1.28) contrast(0.96) saturate(1.35) blur(0.5px)';
     
     let drawW, drawH, drawX, drawY;
     const videoRatio = vWidth / vHeight;
@@ -134,7 +134,7 @@ const captureShot = () => {
       drawY = (ch - drawH) / 2;
     }
     
-    const slimFactor = 0.95;
+    const slimFactor = 0.94;
     const slimW = drawW * slimFactor;
     const slimX = drawX + (drawW - slimW) / 2;
     
@@ -203,7 +203,7 @@ onUnmounted(() => {
   height: 100%;
   object-fit: cover;
   transform: scaleX(-1);
-  filter: brightness(1.15) contrast(0.9) saturate(1.35) blur(0.8px);
+  filter: brightness(1.28) contrast(0.96) saturate(1.35) blur(0.5px);
   transition: filter 0.1s ease;
 }
 
