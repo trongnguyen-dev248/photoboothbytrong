@@ -144,7 +144,7 @@ const captureShot = () => {
     beautyCanvas.width = cw;
     beautyCanvas.height = ch;
     const beautyCtx = beautyCanvas.getContext('2d');
-    beautyCtx.filter = 'brightness(1.38) contrast(0.92) saturate(1.4) blur(4.5px)';
+    beautyCtx.filter = 'brightness(1.55) contrast(0.70) saturate(1.2) blur(7px)';
     beautyCtx.drawImage(rawCanvas, 0, 0);
     beautyCtx.filter = 'none';
 
@@ -162,13 +162,13 @@ const captureShot = () => {
       const g = data[i+1];
       const b = data[i+2];
       
-      const isSkin = (r > 60 && g > 40 && b > 20 && r > g && r > b && (Math.max(r, g, b) - Math.min(r, g, b) > 10) && Math.abs(r - g) > 10);
+      const isSkin = (r > 40 && g > 30 && b > 20 && r > g && r > b + 10 && Math.abs(r - g) > 5);
       
       if (isSkin) {
         data[i] = 255;
         data[i+1] = 255;
         data[i+2] = 255;
-        data[i+3] = 225;
+        data[i+3] = 235;
       } else {
         data[i+3] = 0;
       }
@@ -245,7 +245,7 @@ onUnmounted(() => {
   height: 100%;
   object-fit: cover;
   transform: scaleX(-1);
-  filter: brightness(1.2) contrast(0.95) saturate(1.25) blur(0.3px);
+  filter: brightness(1.35) contrast(0.85) saturate(1.2) blur(0.8px);
   transition: filter 0.1s ease;
 }
 
