@@ -57,7 +57,8 @@ onMounted(async () => {
       video: { 
         width: { ideal: 1280 }, 
         height: { ideal: 960 },
-        facingMode: "user"
+        facingMode: "user",
+        advanced: [{ zoom: 0.5 }]
       }
     });
     if (videoRef.value) {
@@ -110,67 +111,36 @@ const captureShot = () => {
     const vHeight = videoRef.value.videoHeight;
     
     ctx.clearRect(0, 0, cw, ch);
+    ctx.save();
+    
+    ctx.translate(cw, 0);
+    ctx.scale(-1, 1);
+    
+    ctx.filter = 'brightness(1.22) contrast(0.92) saturate(1.25) blur(0.5px)';
     
     let drawW, drawH, drawX, drawY;
     const videoRatio = vWidth / vHeight;
     const canvasRatio = cw / ch;
     
     if (videoRatio > canvasRatio) {
-      drawH = ch; drawW = ch * videoRatio; drawX = (cw - drawW) / 2; drawY = 0;
+      drawH = ch;
+      drawW = ch * videoRatio;
+      drawX = (cw - drawW) / 2;
+      drawY = 0;
     } else {
-      drawW = cw; drawH = cw / videoRatio; drawX = 0; drawY = (ch - drawH) / 2;
+      drawW = cw;
+      drawH = cw / videoRatio;
+      drawX = 0;
+      drawY = (ch - drawH) / 2;
     }
+    
     const slimFactor = 0.94;
     const slimW = drawW * slimFactor;
     const slimX = drawX + (drawW - slimW) / 2;
-
-    const rawCanvas = document.createElement('canvas');
-    rawCanvas.width = cw; rawCanvas.height = ch;
-    const rawCtx = rawCanvas.getContext('2d');
-    rawCtx.translate(cw, 0); rawCtx.scale(-1, 1);
-    rawCtx.drawImage(videoRef.value, slimX, drawY, slimW, drawH);
-
-    const beautyCanvas = document.createElement('canvas');
-    beautyCanvas.width = cw; beautyCanvas.height = ch;
-    const beautyCtx = beautyCanvas.getContext('2d');
-    beautyCtx.filter = 'brightness(1.58) contrast(0.72) saturate(1.25) blur(7px)';
-    beautyCtx.drawImage(rawCanvas, 0, 0);
-    beautyCtx.filter = 'none';
-
-    const binaryMaskCanvas = document.createElement('canvas');
-    binaryMaskCanvas.width = cw; binaryMaskCanvas.height = ch;
-    const binaryMaskCtx = binaryMaskCanvas.getContext('2d');
-    binaryMaskCtx.drawImage(rawCanvas, 0, 0);
     
-    const imgData = binaryMaskCtx.getImageData(0, 0, cw, ch);
-    const data = imgData.data;
-    
-    for (let i = 0; i < data.length; i += 4) {
-      const r = data[i]; const g = data[i+1]; const b = data[i+2];
-      const isSkin = (r > 45 && g > 35 && b > 20 && r > g && r > b + 10 && Math.abs(r - g) > 5);
-      if (isSkin) {
-        data[i] = 255; data[i+1] = 255; data[i+2] = 255; data[i+3] = 255;
-      } else {
-        data[i+3] = 0;
-      }
-    }
-    binaryMaskCtx.putImageData(imgData, 0, 0);
-
-    const featheredMaskCanvas = document.createElement('canvas');
-    featheredMaskCanvas.width = cw; featheredMaskCanvas.height = ch;
-    const featheredMaskCtx = featheredMaskCanvas.getContext('2d');
-    featheredMaskCtx.filter = 'blur(12px)';
-    featheredMaskCtx.drawImage(binaryMaskCanvas, 0, 0);
-    featheredMaskCtx.filter = 'none';
-
-    ctx.filter = 'brightness(1.05) contrast(1.02) saturate(1.1)';
-    ctx.drawImage(rawCanvas, 0, 0);
+    ctx.drawImage(videoRef.value, slimX, drawY, slimW, drawH);
+    ctx.restore();
     ctx.filter = 'none';
-
-    featheredMaskCtx.globalCompositeOperation = 'source-in';
-    featheredMaskCtx.drawImage(beautyCanvas, 0, 0);
-    
-    ctx.drawImage(featheredMaskCanvas, 0, 0);
     
     const url = canvasRef.value.toDataURL('image/jpeg', 0.98);
     localImages.value.push(url);
@@ -233,7 +203,7 @@ onUnmounted(() => {
   height: 100%;
   object-fit: cover;
   transform: scaleX(-1);
-  filter: brightness(1.35) contrast(0.85) saturate(1.2) blur(0.8px);
+  filter: brightness(1.22) contrast(0.92) saturate(1.25) blur(0.5px);
   transition: filter 0.1s ease;
 }
 
