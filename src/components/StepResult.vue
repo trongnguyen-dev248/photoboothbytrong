@@ -92,19 +92,29 @@ const triggerToast = () => {
 const exportStrip = async () => {
   if (!stripRef.value) return;
   try {
+    const currentScrollX = window.scrollX;
+    const currentScrollY = window.scrollY;
+
+    window.scrollTo(0, 0);
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
     const canvas = await html2canvas(stripRef.value, {
       useCORS: true,
-      scale: 3,
+      scale: 4, 
       backgroundColor: null,
+      logging: false,
+      imageTimeout: 0,
       scrollX: 0,
       scrollY: 0,
-      windowWidth: stripRef.value.scrollWidth,
-      windowHeight: stripRef.value.scrollHeight
+      width: stripRef.value.offsetWidth,
+      height: stripRef.value.offsetHeight
     });
     
+    window.scrollTo(currentScrollX, currentScrollY);
+
     const link = document.createElement('a');
     link.download = `photobooth-by-trong-${Date.now()}.png`;
-    link.href = canvas.toDataURL('image/png');
+    link.href = canvas.toDataURL('image/png', 1.0);
     link.click();
     triggerToast();
   } catch (err) {
