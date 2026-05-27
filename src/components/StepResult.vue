@@ -1,5 +1,11 @@
 <template>
   <div class="result-container">
+    <transition name="toast-fade">
+      <div v-if="showToast" class="toast-alert">
+        Tải dải ảnh thành công! 🎉
+      </div>
+    </transition>
+
     <h2 class="title">Hoàn Thành! 🎉</h2>
 
     <div class="strip-container">
@@ -52,6 +58,7 @@ defineEmits(['reset']);
 
 const stripRef = ref(null);
 const isPortraitImages = ref(false);
+const showToast = ref(false);
 
 const formattedDate = computed(() => {
   const now = new Date();
@@ -75,26 +82,31 @@ onMounted(() => {
   detectOrientation();
 });
 
+const triggerToast = () => {
+  showToast.value = true;
+  setTimeout(() => {
+    showToast.value = false;
+  }, 2500);
+};
+
 const exportStrip = async () => {
   if (!stripRef.value) return;
   try {
-    const currentWidth = stripRef.value.offsetWidth;
-    const currentHeight = stripRef.value.offsetHeight;
-
     const canvas = await html2canvas(stripRef.value, {
       useCORS: true,
       scale: 3,
       backgroundColor: null,
-      width: currentWidth,
-      height: currentHeight,
-      windowWidth: currentWidth,
-      windowHeight: currentHeight
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: stripRef.value.scrollWidth,
+      windowHeight: stripRef.value.scrollHeight
     });
     
     const link = document.createElement('a');
     link.download = `photobooth-by-trong-${Date.now()}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
+    triggerToast();
   } catch (err) {
     alert('Có lỗi xảy ra khi xuất ảnh.');
   }
@@ -109,6 +121,35 @@ const exportStrip = async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  position: relative;
+}
+
+.toast-alert {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #ff758f, #ff4d6d);
+  color: white;
+  padding: 14px 32px;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 1.05rem;
+  box-shadow: 0 10px 25px rgba(255, 77, 109, 0.4);
+  border: 3px solid #fff;
+  z-index: 9999;
+}
+
+.toast-fade-enter-active {
+  animation: slideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.toast-fade-leave-active {
+  animation: slideIn 0.2s reverse ease-in;
+}
+
+@keyframes slideIn {
+  from { top: -60px; opacity: 0; transform: translateX(-50%) scale(0.9); }
+  to { top: 30px; opacity: 1; transform: translateX(-50%) scale(1); }
 }
 
 .title {
