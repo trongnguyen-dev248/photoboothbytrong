@@ -111,12 +111,6 @@ const captureShot = () => {
     const vHeight = videoRef.value.videoHeight;
     
     ctx.clearRect(0, 0, cw, ch);
-    ctx.save();
-    
-    ctx.translate(cw, 0);
-    ctx.scale(-1, 1);
-    
-    ctx.filter = 'brightness(1.28) contrast(0.96) saturate(1.35) blur(0.5px)';
     
     let drawW, drawH, drawX, drawY;
     const videoRatio = vWidth / vHeight;
@@ -137,12 +131,60 @@ const captureShot = () => {
     const slimFactor = 0.94;
     const slimW = drawW * slimFactor;
     const slimX = drawX + (drawW - slimW) / 2;
+
+    const rawCanvas = document.createElement('canvas');
+    rawCanvas.width = cw;
+    rawCanvas.height = ch;
+    const rawCtx = rawCanvas.getContext('2d');
+    rawCtx.translate(cw, 0);
+    rawCtx.scale(-1, 1);
+    rawCtx.drawImage(videoRef.value, slimX, drawY, slimW, drawH);
+
+    const beautyCanvas = document.createElement('canvas');
+    beautyCanvas.width = cw;
+    beautyCanvas.height = ch;
+    const beautyCtx = beautyCanvas.getContext('2d');
+    beautyCtx.filter = 'brightness(1.38) contrast(0.92) saturate(1.4) blur(4.5px)';
+    beautyCtx.drawImage(rawCanvas, 0, 0);
+    beautyCtx.filter = 'none';
+
+    const maskCanvas = document.createElement('canvas');
+    maskCanvas.width = cw;
+    maskCanvas.height = ch;
+    const maskCtx = maskCanvas.getContext('2d');
+    maskCtx.drawImage(rawCanvas, 0, 0);
     
-    ctx.drawImage(videoRef.value, slimX, drawY, slimW, drawH);
-    ctx.restore();
+    const imgData = maskCtx.getImageData(0, 0, cw, ch);
+    const data = imgData.data;
+    
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i+1];
+      const b = data[i+2];
+      
+      const isSkin = (r > 60 && g > 40 && b > 20 && r > g && r > b && (Math.max(r, g, b) - Math.min(r, g, b) > 10) && Math.abs(r - g) > 10);
+      
+      if (isSkin) {
+        data[i] = 255;
+        data[i+1] = 255;
+        data[i+2] = 255;
+        data[i+3] = 225;
+      } else {
+        data[i+3] = 0;
+      }
+    }
+    maskCtx.putImageData(imgData, 0, 0);
+
+    ctx.filter = 'brightness(1.04) contrast(1.02) saturate(1.15)';
+    ctx.drawImage(rawCanvas, 0, 0);
     ctx.filter = 'none';
+
+    maskCtx.globalCompositeOperation = 'source-in';
+    maskCtx.drawImage(beautyCanvas, 0, 0);
     
-    const url = canvasRef.value.toDataURL('image/jpeg', 0.95);
+    ctx.drawImage(maskCanvas, 0, 0);
+    
+    const url = canvasRef.value.toDataURL('image/jpeg', 0.98);
     localImages.value.push(url);
   }
 };
@@ -203,7 +245,7 @@ onUnmounted(() => {
   height: 100%;
   object-fit: cover;
   transform: scaleX(-1);
-  filter: brightness(1.28) contrast(0.96) saturate(1.35) blur(0.5px);
+  filter: brightness(1.2) contrast(0.95) saturate(1.25) blur(0.3px);
   transition: filter 0.1s ease;
 }
 
